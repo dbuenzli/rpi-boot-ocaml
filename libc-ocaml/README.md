@@ -10,7 +10,7 @@ libc-ocaml is mainly distributed under the BSD3 license, a few bits
 are copyrighted under slightly different but at least as liberal
 terms. See [LICENSE.md](LICENSE.md) for details.
 
-# Porting
+## Porting
 
 In order for `malloc(3)` to work your system needs to define a `sbrk` function
 with the following signature:
@@ -28,21 +28,20 @@ void halt (int status)
 ```
 This will be called on POSIX `exit` or `abort`.
 
-# Implementation notes
+## Implementation notes
 
 The only functions that are implemented seriously are memory
-allocation, string handling and string formatting functions.
+allocation, string handling and string formatting functions. Most of
+the other function, especially all the file system related ones,
+simply error with `ENOSYS`.
 
-Most of the other function, especially all the file system related
-ones, simply error with `ENOSYS`.
-
-# Stolen code
+## Stolen code
 
 See [LICENSE.md](LICENSE.md) for the copyright details.
 
 * `free`, `malloc`, `calloc` and `realloc` use Doug Lea's [malloc][1]
   implementation, see [`malloc.c`](src/malloc.c). Note that `abort`
-  and [`sbrk`] are not required by the OCaml system, but are by this
+  and `sbrk` are not required by the OCaml system, but are by this
   code.
 
 * `strtod` is implemented by David M. Gay's [dtoa.c][2] source,
@@ -51,11 +50,9 @@ See [LICENSE.md](LICENSE.md) for the copyright details.
 * `snprintf` and `vsnprintf` are implemented using Holger Weiss's
    [sprintf][3] implementation, see [snprintf.c](src/snprintf.c).
 
-[1]: ftp://g.oswego.edu/pub/misc/malloc.c
+[1]: http://g.oswego.edu/dl/html/malloc.html
 [2]: http://www.netlib.org/fp/dtoa.c
 [3]: http://www.jhweiss.de/software/snprintf.html
-
-
 
 
 

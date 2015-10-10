@@ -20,8 +20,8 @@ REPRESENTATION OR WARRANTY OF ANY KIND CONCERNING THE MERCHANTABILITY
 OF THIS SOFTWARE OR ITS FITNESS FOR ANY PARTICULAR PURPOSE.
 ```
 
-The file [`src/snprintf.c`] is authored Patrick Powell and Holger Weiss and is
-distributed under the following license:
+The file [`src/snprintf.c`](src/snprintf.c) is authored Patrick Powell and
+Holger Weiss and is distributed under the following license:
 ```
 Copyright (c) 1995 Patrick Powell.
 

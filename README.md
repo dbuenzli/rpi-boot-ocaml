@@ -12,12 +12,12 @@ rpi-boot-ocaml is distributed under the BSD3 license.
 
 [1]: https://www.raspberrypi.org/products/raspberry-pi-2-model-b/
 
-# Prerequisites
+## Prerequisites
 
 We first need an OCaml cross compiler for ARMv7. Add the following
 repository to `opam`:
 ```
-opam repo add rpi-boot-ocaml http://erratique.ch/repos/rpi-boot-ocaml
+opam repo add rpi-boot-ocaml http://erratique.ch/repos/rpi-boot-ocaml.git
 opam update
 ```
 Install an OCaml compiler with a version that matches the cross-compiler
@@ -47,7 +47,7 @@ Note that the compiler is configured not to link against `libc` and
 
 [2]: (https://launchpad.net/gcc-arm-embedded)
 
-# Now run an OCaml system kernel
+## Now run an OCaml system kernel
 
 Clone this repository:
 ```
@@ -76,7 +76,7 @@ system boot you can connect a display and/or a [serial cable][4]
 and/or a display to the Pi. Power the system. The display should show
 something like this:
 
-![rpi-boot-ocaml greetings](doc/greet.png)
+![rpi-boot-ocaml greetings](doc/greet.jpg)
 
 The serial connection should output something along the lines of:
 ```
@@ -91,21 +91,20 @@ equivalent boot sequence into a plain C kernel.
 [3]: https://www.raspberrypi.org/documentation/installation/installing-images/README.md
 [4]: http://elinux.org/RPi_Serial_Connection
 
-# Boot and halt procedure 
+## Boot and halt procedure 
 
 We describe what happens once we get a chance to execute our code. If
 you want to know about the slow GPU dance that comes before see for
-example this (sligthly outdated) [stackoverflow answer][5]
+example this (sligthly outdated) [stackoverflow answer][5].
 
 The kernel starts with [`boot.S`](src-boot/boot.S) which:
 
-1. Setups the C call stack.
-2. Enables the L1 cache and branch prediction.
-3. Enables the Neon MPE.
-4. Zeroes the C [bss section](https://en.wikipedia.org/wiki/.bss).
-5. Jumps into the `_startup` C function of
-    [`startup.c`](src-boot/startup.c) which simply calls
-    `caml_startup` and never returns.
+1. Enables the L1 cache and branch prediction.
+2. Enables the Neon MPE.
+3. Zeroes the C [bss section](https://en.wikipedia.org/wiki/.bss).
+4. Setups the C call stack and jumps into the `_startup` C function of
+   [`startup.c`](src-boot/startup.c) which simply calls
+   `caml_startup` and never returns.
 
 If the program ends up in the C `exit` or `abort` function the `halt`
 function of [`startup.c`](src-boot/startup.c) gets called with the
@@ -118,10 +117,10 @@ condition. If `halt` is called with a status of `0` we just call the
 
 [5]: http://raspberrypi.stackexchange.com/a/10595
 
-# Kernel development and image build procedure
+## Kernel development and image build procedure
 
 To build a kernel simply create an OCaml program and link it into an
-object cfile using `ocamlopt`'s [`-output-obj`][5] option.
+object cfile using `ocamlopt`'s [`-output-obj`][6] option.
 
 This object file must then be linked using the
 [`rpi-boot-ocaml.ld`](rpi-boot-ocaml.ld) linker script with the
@@ -148,9 +147,9 @@ In case of problems you can have a look at the generated assembly code
 `_build/rpi-boot-ocaml.dasm` and the map file
 `_build/rpi-boot-ocaml.map`.
 
-[5]: http://caml.inria.fr/pub/docs/manual-ocaml/intfc.html#sec454
+[6]: http://caml.inria.fr/pub/docs/manual-ocaml/intfc.html#sec454
 
-# Status and future plans
+## Status and future plans
 
 Note that all this is only a starting point and there are quite a few
 issues to solve and a few problems you may run into. See the
@@ -159,5 +158,5 @@ issues to solve and a few problems you may run into. See the
 Once we get proper cross-compilation support in `opam` the plan is to
 eventually package and split away `libc-ocaml` and make this a package
 only for the `src-boot` static library and the linker script (and
-maybe the helper base (`Rpi`)[`src/rpi.mli`] module).  The rest in
+maybe the helper base [`Rpi`](`src/rpi.mli`) module).  The rest in
 `src` should be developed and distributed independently as libraries.
