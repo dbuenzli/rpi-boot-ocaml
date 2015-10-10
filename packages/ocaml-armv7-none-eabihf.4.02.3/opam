@@ -1,0 +1,61 @@
+opam-version: "1.2"
+maintainer: "daniel.buenzl i@erratique.ch"
+authors: "The OCaml development team"
+homepage: "http://ocaml.org"
+bug-reports: "http://caml.inria.fr/mantis/"
+dev-repo: "https://github.com/ocaml/ocaml.git"
+
+substs: ["armv7-none-eabihf.conf" "config/Makefile"]
+
+build: [[ make "bare" ]]
+
+install: [
+ [ make "bare-install" ]
+
+ # Copy base OCaml system META files
+ [ "cp" "-r" "%{prefix}%/lib/bigarray" "%{prefix}%/armv7-none-eabihf/lib" ]
+ [ "cp" "-r" "%{prefix}%/lib/bytes" "%{prefix}%/armv7-none-eabihf/lib" ]
+ [ "cp" "-r" "%{prefix}%/lib/compiler-libs" "%{prefix}%/armv7-none-eabihf/lib" ]
+ [ "cp" "-r" "%{prefix}%/lib/compiler-libs" "%{prefix}%/armv7-none-eabihf/lib" ]
+ [ "cp" "-r" "%{prefix}%/lib/findlib" "%{prefix}%/armv7-none-eabihf/lib" ]
+ [ "cp" "-r" "%{prefix}%/lib/num" "%{prefix}%/armv7-none-eabihf/lib" ]
+ [ "cp" "-r" "%{prefix}%/lib/num-top" "%{prefix}%/armv7-none-eabihf/lib" ]
+ [ "cp" "-r" "%{prefix}%/lib/stdlib" "%{prefix}%/armv7-none-eabihf/lib" ]
+ [ "cp" "-r" "%{prefix}%/lib/str" "%{prefix}%/armv7-none-eabihf/lib" ]
+ [ # For unix.cmi needed by bigarrays the unix library itself is not available.
+   "cp" "-r" "%{prefix}%/lib/unix" "%{prefix}%/armv7-none-eabihf/lib" ]
+ [ # We don't heave threads but otherwise ocamlfind complains
+   "cp" "-r" "%{prefix}%/lib/threads" "%{prefix}%/armv7-none-eabihf/lib" ]
+
+ [ "mkdir" "-p" "%{prefix}%/lib/findlib.conf.d" ]
+ [ "cp" "armv7-none-eabihf.conf" "%{prefix}%/lib/findlib.conf.d/" ]
+]
+
+remove: [
+  [ "rm" "-f" "%{prefix}%/armv7-none-eabihf/bin/ocaml" ]
+  [ "rm" "-f" "%{prefix}%/armv7-none-eabihf/bin/ocamlc" ]
+  [ "rm" "-f" "%{prefix}%/armv7-none-eabihf/bin/ocamlcp" ]
+  [ "rm" "-f" "%{prefix}%/armv7-none-eabihf/bin/ocamldep" ]
+  [ "rm" "-f" "%{prefix}%/armv7-none-eabihf/bin/ocamllex" ]
+  [ "rm" "-f" "%{prefix}%/armv7-none-eabihf/bin/ocamlmklib" ]
+  [ "rm" "-f" "%{prefix}%/armv7-none-eabihf/bin/ocamlmktop" ]
+  [ "rm" "-f" "%{prefix}%/armv7-none-eabihf/bin/ocamlopt" ]
+  [ "rm" "-f" "%{prefix}%/armv7-none-eabihf/bin/ocamloptp" ]
+  [ "rm" "-f" "%{prefix}%/armv7-none-eabihf/bin/ocamlprof" ]
+  [ "rm" "-f" "%{prefix}%/armv7-none-eabihf/bin/ocamlrun" ]
+  [ "rm" "-f" "%{prefix}%/armv7-none-eabihf/bin/ocamlrund" ]
+  [ "rm" "-f" "%{prefix}%/armv7-none-eabihf/bin/ocamlyacc" ]
+  [ "rm" "-rf" "%{prefix}%/armv7-none-eabihf/lib/ocaml" ]
+  [ "rm" "-f" "%{prefix}%/lib/findlib.conf.d/armv7-none-eabihf.conf" ]
+]
+
+depends: [ "ocamlfind" {>= "1.5.4"} ]
+
+depexts: [
+  [["debian"] ["gcc-arm-none-eabi"]]
+  [["ubuntu"] ["gcc-arm-none-eabi"]]
+  [["osx" "homebrew"] ["armmbed/formulae/arm-none-eabi-gcc"]]
+]
+
+available: [ (ocaml-version = "4.02.3" & arch = "x86")
+           | compiler = "4.02.3+32bit" ]

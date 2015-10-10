@@ -1,0 +1,164 @@
+PREFIX=%{prefix}%/armv7-none-eabihf
+BINDIR=$(PREFIX)/bin
+LIBDIR=$(PREFIX)/lib/ocaml
+STUBLIBDIR=$(LIBDIR)/stublibs
+MANDIR=$(PREFIX)/man
+MANEXT=1
+CAMLRUN=%{bin}%/ocamlrun     # build-os binaries
+CAMLYACC=%{bin}%/ocamlyacc   # build-os binaries
+RANLIB=arm-none-eabi-ranlib
+RANLIBCMD=arm-none-eabi-ranlib
+ARCMD=arm-none-eabi-ar
+SHARPBANGSCRIPTS=true
+UNIX_OR_WIN32=unix
+UNIXLIB=unix
+GRAPHLIB=graph
+BNG_ARCH=generic
+BNG_ASM_LEVEL=0
+PTHREAD_LINK=
+PTHREAD_CAML_LINK=
+X11_INCLUDES=not found
+X11_LINK=not found
+LIBBFD_LINK=
+
+# FIXME eventually we should use -nostdinc, have a proper
+# libc-ocaml-bare package and fetch headers from there.
+BARE_SYS_CCOPTS= -nostartfiles -nodefaultlibs -nostdlib \
+                  -march=armv7-a -mtune=cortex-a7 \
+                  -mfpu=neon-vfpv4 -mfloat-abi=hard
+
+BYTECC=arm-none-eabi-gcc $(BARE_SYS_CCOPTS)
+BYTECCCOMPOPTS=-I ../bare-include -O -fno-defer-pop -Wall -D_FILE_OFFSET_BITS=64
+BYTECCLINKOPTS=
+BYTECCLIBS=
+BYTECCRPATH=
+EXE=
+SUPPORTS_SHARED_LIBRARIES=false
+SHAREDCCCOMPOPTS=-O
+MKSHAREDLIBRPATH=
+NATDYNLINKOPTS=
+SYSLIB=-l$(1)
+#ml let syslib x = "-l"^x;;
+
+### How to build a static library
+MKLIB=arm-none-eabi-ar rc $(1) $(2); arm-none-eabi-ranlib $(1)
+#ml let mklib out files opts = Printf.sprintf "arm-none-eabi-ar rc %s %s %s; arm-none-eabi-ranlib %s" out opts files out;;
+ARCH=arm
+MODEL=armv7l
+SYSTEM=linux_eabihf
+NATIVECC=$(BYTECC)
+NATIVECCCOMPOPTS=-I ../bare-include -O -Wall -D_FILE_OFFSET_BITS=64
+NATIVECCPROFOPTS=-I ../bare-include -O -Wall -D_FILE_OFFSET_BITS=64
+NATIVECCLINKOPTS=
+NATIVECCRPATH=
+NATIVECCLIBS=
+ASM=arm-none-eabi-as
+ASPP=$(BYTECC) -c
+ASPPPROFFLAGS=-DPROFILING
+PROFILING=prof
+DYNLINKOPTS= -ldl
+OTHERLIBRARIES=str num bigarray
+CC_PROFILE=-pg
+SYSTHREAD_SUPPORT=false
+PARTIALLD=arm-none-eabi-ld -r
+PACKLD=$(PARTIALLD) $(NATIVECCLINKOPTS) -o
+DLLCCCOMPOPTS=
+IFLEXDIR=
+O=o
+A=a
+SO=so
+EXT_OBJ=.o
+EXT_ASM=.s
+EXT_LIB=.a
+EXT_DLL=.so
+EXTRALIBS=
+CCOMPTYPE=cc
+TOOLCHAIN=cc
+NATDYNLINK=false
+CMXS=cmxa
+MKEXE=$(BYTECC)
+MKEXEDEBUGFLAG=-g
+MKDLL=
+MKMAINDLL=
+RUNTIMED=runtimed
+SHARED=noshared
+#WITH_DEBUGGER=ocamldebugger
+#WITH_OCAMLDOC=ocamldoc
+#WITH_OCAMLBUILD=ocamlbuild
+ASM_CFI_SUPPORTED=true
+WITH_FRAME_POINTERS=false
+TARGET=armv7l-unknown-linux-gnueabihf
+
+# Additional rules
+#
+# The build procedure below is identical to the one of OCaml except in
+# a few cases (but because of deps specifications we end up rewriting more
+# than needed). Hacking the build system directly would better but
+# conditional build artefacts seem to be quite heavy to implement.
+#
+# What we want to do is
+#
+#  make world
+#  make opt
+#  make install
+#
+# However there are cases when C executable are produced with the gcc cross
+# compiling toolchain and thus ask for a concrete libc for the host-os
+# which we don't want to provide for now. Fundamentally this is simply:
+#
+# * byterun/Makefile all: should not build ocamlyacc and ocamlrun
+# * Makefile coreall: do not rebuild ocamlyacc or ocamllex
+# * othertools/Makefile all: should not build objinfo because it compiles an
+#   objinfo_helper C program.
+
+bare-coldstart:
+	cd byterun; $(MAKE) ld.conf libcamlrun.a libcamlrund.a
+	cd stdlib; $(MAKE) COMPILER=../boot/ocamlc all
+	cd stdlib; cp $(LIBFILES) ../boot
+	ln -sf ../byterun/libcamlrun.a boot/libcamlrun.a
+	ln -sf ../byterun/caml stdlib/caml
+
+# remove compilation of ocamlyacc and ocamlrun
+bare-runtime:
+	cd byterun; $(MAKE) libcamlrun.a libcamlrund.a
+	ln -sf ../byterun/libcamlrun.a stdlib/libcamlrun.a
+
+# Target ocamltools: remove compilation of objinfo as it needs
+# ocamlobjinfo_helper which compiles to a C native code executable
+# and thus wants a libc
+bare-coreall:
+	$(MAKE) ocamlc
+	cd tools; $(MAKE) ocamldep ocamlprof ocamlcp ocamloptp ocamlmktop \
+                    ocamlmklib dumpobj read_cmt
+	$(MAKE) library
+
+bare-all:
+	$(MAKE) bare-runtime
+	$(MAKE) bare-coreall
+	$(MAKE) ocaml
+	cd otherlibs/unix && make unix.cmi # for bigarray
+	for i in $(OTHERLIBRARIES); do \
+	  (cd otherlibs/$$i; $(MAKE) all) || exit $$?; \
+	done
+
+bare-world:
+	$(MAKE) bare-coldstart
+	$(MAKE) bare-all
+
+bare:
+	$(MAKE) bare-world
+	$(MAKE) opt
+
+# Fake existence of what we didn't compile so that install
+# doesn't fail and use the build-os ocamllex.
+bare-install:
+	touch byterun/ocamlrund
+	touch lex/ocamllex
+	touch tools/objinfo
+	touch tools/objinfo_helper
+	$(MAKE) install
+	rm $(INSTALL_BINDIR)/ocamlobjinfo$(EXE) # Fake
+	cp $(CAMLYACC) $(INSTALL_BINDIR)/ocamlyacc$(EXE) # Use build-os
+	cp %{bin}%/ocamllex \
+     $(INSTALL_BINDIR)/ocamllex$(EXE) # Use build-os
+	cp otherlibs/unix/unix.cmi $(INSTALL_LIBDIR)/ # for bigarray
