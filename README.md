@@ -72,9 +72,9 @@ kernel=rpi-boot-ocaml.img
 ```
 
 Unmount the SD card, plug it in the Raspberry Pi. To witness the OCaml
-system boot you can connect a display and/or a [serial cable][4]
-and/or a display to the Pi. Power the system. The display should show
-something like this:
+system boot you can connect a display and/or a [serial cable][4] to
+the Pi. Power the system. The display should show something like
+this:
 
 ![rpi-boot-ocaml greetings](doc/greet.jpg)
 
