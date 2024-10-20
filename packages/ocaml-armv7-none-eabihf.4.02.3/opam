@@ -1,10 +1,10 @@
-opam-version: "1.2"
+opam-version: "2.0"
 maintainer: "daniel.buenzl i@erratique.ch"
 authors: "The OCaml development team"
 homepage: "http://ocaml.org"
-bug-reports: "http://caml.inria.fr/mantis/"
-dev-repo: "https://github.com/ocaml/ocaml.git"
-
+bug-reports: "https://github.com/ocaml/opam-repository/issues"
+dev-repo: "git+https://github.com/ocaml/ocaml.git"
+license: "LGPL-2.1-or-later WITH OCaml-LGPL-linking-exception"
 substs: ["armv7-none-eabihf.conf" "config/Makefile"]
 
 build: [[ make "bare" ]]
@@ -49,13 +49,29 @@ remove: [
   [ "rm" "-f" "%{prefix}%/lib/findlib.conf.d/armv7-none-eabihf.conf" ]
 ]
 
-depends: [ "ocamlfind" {>= "1.5.4"} ]
+depends: [ "ocaml" {= "4.02.3"} "ocaml-variants" {= "4.02.3+32bit"} "ocamlfind" {>= "1.5.4"} ]
 
 depexts: [
-  [["debian"] ["gcc-arm-none-eabi"]]
-  [["ubuntu"] ["gcc-arm-none-eabi"]]
-  [["osx" "homebrew"] ["armmbed/formulae/arm-none-eabi-gcc"]]
+  ["gcc-arm-none-eabi"] {os-distribution = "debian"}
+  ["gcc-arm-none-eabi"] {os-distribution = "ubuntu"}
+  ["armmbed/formulae/arm-none-eabi-gcc"]
+  {os = "macos" & os-distribution = "homebrew"}
 ]
 
-available: [ (ocaml-version = "4.02.3" & arch = "x86")
-           | compiler = "4.02.3+32bit" ]
+available: arch = "x86_32"
+synopsis: "OCaml cross-compiler for bare 32-bit armv7 with hard float"
+description: "You will need to provide your own libc."
+flags: light-uninstall
+extra-files: [
+  ["armv7-none-eabihf.conf.in" "md5=6047e37c327dfba75e6e477d320a397e"]
+  ["bare-include/dirent.h" "md5=b74610472bb2dfecb2ef8bb32f348b7c"]
+  ["bare-include/sys/ucontext.h" "md5=3d9ae92600c9d0835043a380a927ae63"]
+  ["config/s.h" "md5=948414d3fc50fedd5dc3efa08e56c39b"]
+  ["config/m.h" "md5=85c754520e42cc7daefa470c66e057cc"]
+  ["config/Makefile.in" "md5=ad4a3552357d7db3829c2d83e1230c4c"]
+  ["config/.ignore" "md5=32c2851983acb5ab6bc1a2fe42357e8c"]
+]
+url {
+  src: "http://caml.inria.fr/pub/distrib/ocaml-4.02/ocaml-4.02.3.tar.gz"
+  checksum: "md5=ef1a324608c97031cbd92a442d685ab7"
+}

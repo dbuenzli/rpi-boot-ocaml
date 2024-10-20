@@ -1,3 +1,0 @@
-OCaml cross-compiler for bare 32-bit armv7 with hard float.
-
-You will need to provide your own libc.
